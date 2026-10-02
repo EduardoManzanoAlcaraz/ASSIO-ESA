@@ -1,6 +1,6 @@
 # Prácticas de Administración de Servicios de Sistemas Operativos
 
-- **Autor:** Eduardo Manzano Alcaraz
+- **Autor:** 
 - **Grado:** Inteligencia Artificial y Robótica
 - **Profesor:** Domingo Sampedro Lirio
 
