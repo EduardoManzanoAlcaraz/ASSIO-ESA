@@ -2,7 +2,6 @@
 
 - **Autor:** 
 - **Grado:** Inteligencia Artificial y Robótica
-- **Profesor:** Domingo Sampedro Lirio
 
 ## Índice
 
