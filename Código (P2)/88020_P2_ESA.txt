@@ -1,0 +1,277 @@
+Ejercicio 1
+
+Primer acceso: usuario_a
+su - usuario_a
+whoami
+id
+hostname
+pwd
+ls -l /
+ls -ld /home
+ls -l /home
+ls -ld /root
+ls -la /root
+exit
+
+Primer acceso: usuario_b
+su - usuario_b
+whoami
+id
+hostname
+pwd
+ls -l /
+ls -ld /home
+ls -l /home
+ls -ld /root
+ls -la /root
+exit
+
+Primer acceso: usuario_c
+su - usuario_c
+whoami
+id
+hostname
+pwd
+ls -l /
+ls -ld /home
+ls -l /home
+ls -ld /root
+ls -la /root
+exit
+
+Ejercicio 2
+
+Creación del árbol de directorios
+whoami
+sudo mkdir /srv/aurora6
+cd /srv/aurora6
+sudo mkdir ingenieria compras contabilidad documentacion confidencial intercambio
+sudo mkdir ingenieria/mecanica ingenieria/avionica ingenieria/software
+sudo mkdir compras/proveedores compras/pedidos
+sudo mkdir contabilidad/facturas
+sudo mkdir documentacion/comun
+sudo mkdir intercambio/incoming intercambio/approved intercambio/quarantine
+cd
+
+Comprobación de la estructura
+find /srv/aurora6 -type d
+find /srv/aurora6 -type d | wc -l
+ls -l /srv/aurora6
+umask
+
+Ejercicio 3
+
+Creación de usuarios
+sudo adduser usuario_a
+sudo adduser usuario_b
+sudo adduser usuario_c
+
+Creación de grupos
+sudo groupadd mecanica
+sudo groupadd avionica
+sudo groupadd compras
+sudo groupadd proyecto
+getent group mecanica avionica compras proyecto
+
+Configuración de grupos: asignación de usuarios
+sudo usermod -aG mecanica,proyecto usuario_a
+sudo usermod -aG avionica,proyecto usuario_b
+sudo usermod -aG compras,proyecto usuario_c
+
+Comprobación de identificadores y grupos
+id usuario_a
+groups usuario_a
+id usuario_b
+groups usuario_b
+id usuario_c
+groups usuario_c
+
+Ejercicio 4
+
+Permisos: cambio temporal a 751
+whoami
+getent group proyecto
+ls -ld /srv/aurora6/documentacion
+sudo chgrp proyecto /srv/aurora6/documentacion
+sudo chmod 751 /srv/aurora6/documentacion
+ls -ld /srv/aurora6/documentacion
+
+Permisos: comprobación del cambio a 751
+ls -ld /srv/aurora6/documentacion
+stat -c "%A %a %U %G %n" /srv/aurora6/documentacion
+
+Permisos: prueba como miembro del grupo proyecto
+su - usuario_a
+whoami
+ls /srv/aurora6/documentacion
+touch /srv/aurora6/documentacion/prueba.txt
+exit
+
+Ejercicio 5
+
+Comprobaciones previas
+whoami
+getent group mecanica avionica compras proyecto
+id usuario_a
+id usuario_b
+id usuario_c
+which setfacl getfacl
+ls -l /srv/aurora6 /srv/aurora6/ingenieria /srv/aurora6/compras /srv/aurora6/contabilidad /srv/aurora6/documentacion
+
+Cambio de propietarios
+whoami
+sudo chown root:proyecto /srv/aurora6/ingenieria
+sudo chmod 750 /srv/aurora6/ingenieria
+sudo chmod 750 /srv/aurora6/documentacion
+sudo chown usuario_a:mecanica /srv/aurora6/ingenieria/mecanica
+sudo chown usuario_b:avionica /srv/aurora6/ingenieria/avionica /srv/aurora6/ingenieria/software
+sudo chown -R usuario_c:compras /srv/aurora6/compras
+ls -ld /srv/aurora6/ingenieria /srv/aurora6/documentacion
+sudo ls -l /srv/aurora6/ingenieria /srv/aurora6/compras
+
+Permisos: configuración de usuario_a
+su - usuario_a
+whoami
+id
+chmod 2770 /srv/aurora6/ingenieria/mecanica
+setfacl -m u:usuario_b:rx,d:u:usuario_b:rx /srv/aurora6/ingenieria/mecanica
+ls -ld /srv/aurora6/ingenieria/mecanica
+getfacl /srv/aurora6/ingenieria/mecanica
+sudo ls /srv/aurora6/confidencial
+exit
+
+Permisos: configuración de usuario_b
+su - usuario_b
+whoami
+id
+chmod 2770 /srv/aurora6/ingenieria/avionica /srv/aurora6/ingenieria/software
+setfacl -m u:usuario_a:rx,d:u:usuario_a:rx /srv/aurora6/ingenieria/avionica
+ls -l /srv/aurora6/ingenieria
+getfacl /srv/aurora6/ingenieria/avionica
+getfacl /srv/aurora6/ingenieria/software
+exit
+
+Permisos: configuración de usuario_c
+su - usuario_c
+whoami
+id
+chmod 2770 /srv/aurora6/compras /srv/aurora6/compras/proveedores /srv/aurora6/compras/pedidos
+ls -ld /srv/aurora6/compras /srv/aurora6/compras/*
+getfacl /srv/aurora6/compras
+exit
+
+Permisos: contabilidad y documentación común
+whoami
+sudo chown root:proyecto /srv/aurora6/documentacion/comun
+sudo chmod 2750 /srv/aurora6/documentacion/comun
+sudo chown root:root /srv/aurora6/contabilidad /srv/aurora6/contabilidad/facturas
+sudo chmod 700 /srv/aurora6/contabilidad /srv/aurora6/contabilidad/facturas
+sudo setfacl -m u:usuario_c:x /srv/aurora6/contabilidad
+sudo setfacl -m u:usuario_c:rx,d:u:usuario_c:rx /srv/aurora6/contabilidad/facturas
+sudo ls -ld /srv/aurora6/documentacion/comun /srv/aurora6/contabilidad /srv/aurora6/contabilidad/facturas
+sudo getfacl /srv/aurora6/contabilidad /srv/aurora6/contabilidad/facturas
+
+Permisos: confidencial
+whoami
+sudo chown root:root /srv/aurora6/confidencial
+sudo chmod 700 /srv/aurora6/confidencial
+sudo getfacl /srv/aurora6/confidencial
+ls /srv/aurora6/confidencial
+sudo ls /srv/aurora6/confidencial
+
+Comparación final
+whoami
+ls -l /srv/aurora6 /srv/aurora6/ingenieria /srv/aurora6/compras /srv/aurora6/contabilidad /srv/aurora6/documentacion
+sudo ls -l /srv/aurora6 /srv/aurora6/ingenieria /srv/aurora6/compras /srv/aurora6/contabilidad /srv/aurora6/documentacion
+sudo getfacl -R /srv/aurora6
+
+Pruebas por usuario: usuario_a
+su - usuario_a
+whoami
+touch /srv/aurora6/ingenieria/mecanica/informe_a.txt
+ls /srv/aurora6/ingenieria/avionica
+touch /srv/aurora6/ingenieria/avionica/prueba.txt
+ls /srv/aurora6/ingenieria/software
+ls /srv/aurora6/documentacion/comun
+ls /srv/aurora6/contabilidad
+ls /srv/aurora6/confidencial
+ls /srv/aurora6/compras/pedidos
+exit
+
+Pruebas por usuario: usuario_b
+su - usuario_b
+whoami
+touch /srv/aurora6/ingenieria/avionica/telemetria.txt
+touch /srv/aurora6/ingenieria/software/control.py
+ls /srv/aurora6/ingenieria/mecanica
+cat /srv/aurora6/ingenieria/mecanica/informe_a.txt
+touch /srv/aurora6/ingenieria/mecanica/prueba.txt
+ls /srv/aurora6/documentacion/comun
+ls /srv/aurora6/contabilidad
+ls /srv/aurora6/confidencial
+ls /srv/aurora6/compras/pedidos
+exit
+
+Pruebas por usuario: usuario_c
+su - usuario_c
+whoami
+touch /srv/aurora6/compras/pedidos/pedido_001.txt
+touch /srv/aurora6/compras/proveedores/proveedor_x.txt
+ls /srv/aurora6/contabilidad/facturas
+ls /srv/aurora6/contabilidad
+touch /srv/aurora6/contabilidad/facturas/prueba.txt
+ls /srv/aurora6/documentacion/comun
+touch /srv/aurora6/ingenieria/mecanica/prueba.txt
+touch /srv/aurora6/ingenieria/avionica/prueba.txt
+touch /srv/aurora6/ingenieria/software/prueba.txt
+ls /srv/aurora6/confidencial
+exit
+
+Ejercicio 6
+
+Preparación: archivo de factura (alex)
+whoami
+sudo sh -c 'echo "Factura 001 - Proveedor X - 1500 EUR" > /srv/aurora6/contabilidad/facturas/factura_001.txt'
+sudo getfacl /srv/aurora6/contabilidad/facturas/factura_001.txt
+
+Política de permisos individual: usuario_a (prueba 1)
+su - usuario_a
+whoami
+id
+echo "Informe de ensayo estructural" > /srv/aurora6/ingenieria/mecanica/ensayo_a.txt
+cat /srv/aurora6/ingenieria/mecanica/ensayo_a.txt
+exit
+
+Política de permisos individual: usuario_b
+su - usuario_b
+whoami
+id
+echo "Datos de telemetria v1" > /srv/aurora6/ingenieria/avionica/telemetria_b.txt
+cat /srv/aurora6/ingenieria/avionica/telemetria_b.txt
+cat /srv/aurora6/ingenieria/mecanica/ensayo_a.txt
+touch /srv/aurora6/ingenieria/mecanica/intruso_b.txt
+ls /srv/aurora6/contabilidad
+getfacl /srv/aurora6/ingenieria/avionica
+exit
+
+Política de permisos individual: usuario_a (pruebas 2 a 5)
+su - usuario_a
+whoami
+cat /srv/aurora6/ingenieria/avionica/telemetria_b.txt
+touch /srv/aurora6/ingenieria/avionica/intruso_a.txt
+ls /srv/aurora6/confidencial
+getfacl /srv/aurora6/ingenieria/mecanica
+exit
+
+Política de permisos individual: usuario_c
+su - usuario_c
+whoami
+id
+echo "Pedido 001 - 200 tornillos M6" > /srv/aurora6/compras/pedidos/pedido_001.txt
+cat /srv/aurora6/compras/pedidos/pedido_001.txt
+cat /srv/aurora6/contabilidad/facturas/factura_001.txt
+ls /srv/aurora6/contabilidad
+touch /srv/aurora6/ingenieria/mecanica/intruso_c.txt
+ls /srv/aurora6/confidencial
+getfacl /srv/aurora6/contabilidad/facturas
+exit
