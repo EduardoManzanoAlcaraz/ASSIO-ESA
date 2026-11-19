@@ -4,14 +4,14 @@ Se aplica a todo el repositorio. Codex debe leer este archivo; con Claude u otra
 
 ## Antes de cambiar archivos
 
-Lee `README.md` y la memoria antes de describir objetivos o resultados. El repositorio contiene entregables, no una aplicación ni infraestructura automatizada.
+Lee `README.md` y la memoria antes de describir objetivos o resultados. `main` contiene entregables; el README enlaza otras ramas, incluido el TXT manual de comandos de P2. Verifica la rama antes de asumir qué material está disponible. No es una aplicación ni infraestructura automatizada.
 
 Comprueba `git status --short` y la rama. Conserva cambios ajenos y lee las instrucciones de cualquier subdirectorio afectado. Contrasta los documentos con el código: un plan o resultado antiguo no demuestra una función actual. Limita cada cambio al encargo recibido.
 
 ## Reglas del proyecto
 
 - Conserva PDF/PPTX originales; no los regeneres o sobrescribas durante una tarea documental.
-- No inventes código, dependencias, VM, servicios o comandos de prueba ausentes. Las capturas son evidencia histórica del laboratorio, no del sistema actual.
+- No inventes código, dependencias, VM, servicios o comandos de prueba ausentes. El TXT de P2 tiene encabezados y sesiones interactivas: no lo pases entero a Bash ni lo presentes como script idempotente. Las capturas son evidencia histórica del laboratorio, no del sistema actual.
 - No ejecutes `sudo`, cambios de propietarios, usuarios, grupos o ACL de la memoria en el host. Cualquier reproducción debe tener una VM de laboratorio explícita y alcance definido.
 - No copies datos personales o credenciales desde capturas a la documentación nueva.
 
