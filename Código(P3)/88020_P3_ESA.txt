@@ -1,0 +1,367 @@
+=====================================================================
+
+ 88020_P3_ESA - Administración y Servicios de Sistemas Operativos
+
+ Práctica 3: comandos utilizados (miembro A, usuario_a)
+
+ Grupo: Sergio Herrero, Eduardo Manzano, Alex Zheng
+
+ VM: aurora6 (VirtualBox, NAT + reenvío de puertos 2222 -> 22)
+
+=====================================================================
+
+
+
+Nota: las líneas que empiezan por "#" son comentarios. Los comandos
+
+marcados con [alex] se ejecutaron con la cuenta administradora de la
+
+VM; el resto, con la cuenta de rol usuario_a.
+
+
+
+
+
+---------------------------------------------------------------------
+
+APARTADO 1. Revisión de la conectividad SSH y del modo NAT
+
+---------------------------------------------------------------------
+
+
+
+# Regla de reenvío de puertos en VirtualBox (Configuración > Red > NAT):
+
+#   Nombre: ssh | Protocolo: TCP | IP anfitrión: 100.90.230.127
+
+#   Puerto anfitrión: 2222 | Puerto invitado: 22
+
+
+
+# [alex] Instalación/actualización del servidor SSH en la VM
+
+sudo apt install openssh-server
+
+
+
+# [alex] Habilitar y arrancar SSH, y comprobar su estado
+
+sudo systemctl enable --now ssh
+
+systemctl status ssh
+
+
+
+
+
+---------------------------------------------------------------------
+
+APARTADO 2. Verificación SSH individual y trazabilidad de la sesión
+
+---------------------------------------------------------------------
+
+
+
+# Primer acceso por SSH desde el PC (PowerShell), a través de Tailscale
+
+ssh usuario_a@100.90.230.127 -p 2222
+
+
+
+# Dentro de la sesión SSH
+
+whoami
+
+hostname
+
+id
+
+echo $SSH_CONNECTION
+
+
+
+cd ~
+
+pwd
+
+echo "Prueba SSH P3 - $(whoami) - $(date)" > ~/prueba_ssh_p3.txt
+
+ls -l ~/prueba_ssh_p3.txt
+
+cat ~/prueba_ssh_p3.txt
+
+tty
+
+echo $SSH_CONNECTION
+
+who
+
+
+
+# Desde la consola local de la VM (tty1), para comparar con SSH
+
+# [alex]
+
+su - usuario_a
+
+tty
+
+echo "$SSH_CONNECTION"
+
+who
+
+ls -l ~/prueba_ssh_p3.txt
+
+
+
+
+
+---------------------------------------------------------------------
+
+APARTADO 3. Gestión de servicios con systemctl
+
+---------------------------------------------------------------------
+
+
+
+# [alex] Estado de SSH
+
+systemctl status ssh
+
+systemctl is-enabled ssh
+
+
+
+# [alex] Estado de cron
+
+systemctl status cron
+
+
+
+# [alex] Parar, arrancar y reiniciar cron
+
+sudo systemctl restart cron
+
+sudo systemctl stop cron
+
+systemctl status cron
+
+sudo systemctl start cron
+
+systemctl status cron
+
+
+
+# [alex] Deshabilitar y volver a habilitar el arranque automático
+
+sudo systemctl disable cron
+
+systemctl is-enabled cron
+
+systemctl is-active cron
+
+sudo systemctl enable cron
+
+systemctl is-enabled cron
+
+
+
+
+
+---------------------------------------------------------------------
+
+APARTADO 4. Servicio systemd individual orientado a AURORA-6
+
+---------------------------------------------------------------------
+
+
+
+# [alex] Unidades del grupo creadas en /etc/systemd/system/
+
+ls -l /etc/systemd/system/*-monitor.service
+
+cat /etc/systemd/system/structure-monitor.service
+
+ls -l /etc/systemd/system/structure-monitor.service
+
+
+
+# Contenido de /etc/systemd/system/structure-monitor.service:
+
+#   [Unit]
+
+#   Description=AURORA-6 monitor de estructura (miembro A)
+
+#   After=network.target
+
+#
+
+#   [Service]
+
+#   Type=simple
+
+#   User=usuario_a
+
+#   ExecStart=/opt/aurora6/tools/structure-monitor.sh
+
+#   Restart=on-failure
+
+#   RestartSec=3
+
+#
+
+#   [Install]
+
+#   WantedBy=multi-user.target
+
+
+
+# Comprobación con la cuenta de rol usuario_a
+
+whoami
+
+cat /etc/systemd/system/structure-monitor.service
+
+systemctl status structure-monitor.service
+
+systemctl is-enabled structure-monitor.service
+
+sudo journalctl -u structure-monitor.service --since "5 minutes ago"
+
+
+
+
+
+---------------------------------------------------------------------
+
+APARTADO 5. Endurecimiento del servicio y mínimo privilegio
+
+---------------------------------------------------------------------
+
+
+
+# Revisión de propietarios y permisos
+
+namei -l /opt/aurora6/tools/structure-monitor.sh
+
+stat -c "%U:%G %a %n" /opt/aurora6/tools/structure-monitor.sh
+
+stat -c "%U:%G %a %n" /etc/systemd/system/structure-monitor.service
+
+
+
+# ¿Puede usuario_a modificar el script? ¿Qué privilegios tiene?
+
+test -w /opt/aurora6/tools/structure-monitor.sh && echo "ALERTA: modificable" || echo "OK: sin escritura"
+
+sudo -l
+
+
+
+# Edición de la unidad para añadir las medidas de aislamiento
+
+sudo nano /etc/systemd/system/structure-monitor.service
+
+
+
+# Líneas añadidas en la sección [Service]:
+
+#   NoNewPrivileges=true
+
+#   PrivateTmp=true
+
+#   ProtectHome=true
+
+#   ProtectSystem=full
+
+
+
+# Aplicar los cambios y comprobarlos
+
+sudo systemctl daemon-reload
+
+sudo systemctl restart structure-monitor.service
+
+systemctl show structure-monitor.service -p User -p NoNewPrivileges -p PrivateTmp -p ProtectHome -p ProtectSystem
+
+systemctl is-active structure-monitor.service
+
+
+
+
+
+---------------------------------------------------------------------
+
+APARTADO 6. Recuperación automática ante un fallo
+
+---------------------------------------------------------------------
+
+
+
+systemctl status structure-monitor.service
+
+systemctl show structure-monitor.service -p MainPID -p NRestarts
+
+
+
+# Simulación controlada de fallo (cierre forzado del proceso)
+
+sudo systemctl kill --kill-who=main --signal=SIGKILL structure-monitor.service
+
+sleep 5
+
+
+
+systemctl status structure-monitor.service
+
+systemctl show structure-monitor.service -p MainPID -p NRestarts
+
+sudo journalctl -u structure-monitor.service --since "2 minutes ago"
+
+
+
+
+
+---------------------------------------------------------------------
+
+APARTADO 7. Verificación puntual de los registros del servicio
+
+---------------------------------------------------------------------
+
+
+
+sudo journalctl -u structure-monitor.service -n 15 --no-pager
+
+sudo journalctl -u ssh -n 10 --no-pager
+
+
+
+
+
+---------------------------------------------------------------------
+
+APARTADO 8. Medida básica de seguridad en SSH
+
+---------------------------------------------------------------------
+
+
+
+# Editar la configuración de SSH
+
+sudo nano /etc/ssh/sshd_config
+
+
+
+# Línea modificada en /etc/ssh/sshd_config (sin "#" delante):
+
+#   PermitRootLogin no
+
+
+
+# Validar la sintaxis, aplicar sin cortar sesiones y comprobar
+
+sudo /usr/sbin/sshd -t
+
+sudo systemctl reload ssh
+
+sudo /usr/sbin/sshd -T -C user=root,host=localhost,addr=127.0.0.1 | grep -i permitrootlogin
