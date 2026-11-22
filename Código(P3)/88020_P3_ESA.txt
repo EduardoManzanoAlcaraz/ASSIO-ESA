@@ -19,7 +19,6 @@ APARTADO 1. Revisión de la conectividad SSH y del modo NAT
 #   Puerto anfitrión: 2222 | Puerto invitado: 22
 
 # [alex] Instalación/actualización del servidor SSH en la VM
-# (el comando no se ve completo en la captura; se deduce de la salida)
 sudo apt install openssh-server
 
 # [alex] Habilitar y arrancar SSH, y comprobar su estado
